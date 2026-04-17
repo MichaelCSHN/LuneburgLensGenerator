@@ -1,0 +1,3 @@
+# 与 Docker 基础镜像 pymesh/pymesh:py3.7-slim（Python 3.7）对齐。
+# 完整运行环境以镜像为准；PyMesh 由镜像预装，一般不从 pip 安装。
+numpy==1.21.6

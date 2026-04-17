@@ -15,14 +15,55 @@ For more information check our [white paper](https://github.com/jboirazian/Luneb
 
 You will need [Docker](https://www.docker.com/) for this project.
 
-clone the project , then :
+Clone the project, then build the image (default base image is reachable from many CN networks; override if you pull from Docker Hub directly):
 
     docker build -t luneburg-gen .
 
-Then:
+    # Optional (e.g. outside China): use upstream PyMesh image
+    # docker build -t luneburg-gen --build-arg BASE_IMAGE=pymesh/pymesh:py3.7-slim .
 
-    docker run -v "$(pwd)":/app -w /app luneburg-gen
+Run the generator (mount the repo so `output/` is written on your host). Default STL path is `output/luneburg.stl`:
 
+    docker run --rm -v "$(pwd)":/app -w /app luneburg-gen
+
+CLI parameters (examples):
+
+    docker run --rm -v "$(pwd)":/app -w /app luneburg-gen python3 -u Luneburg.py --help
+
+    docker run --rm -v "$(pwd)":/app -w /app luneburg-gen python3 -u Luneburg.py \
+      --k 100 --radius 1.0 --square-hole-size 0.2 --resolution 4 -o output/luneburg.stl
+
+Quick smoke (few holes, fast; writes `output/smoke.stl`):
+
+    docker run --rm -v "$(pwd)":/app -w /app luneburg-gen python3 -u Luneburg.py \
+      --resolution 2 --step 5.0 --k 10 -o output/smoke.stl
+
+Or run `./scripts/smoke_docker.sh` (expects image `luneburg-gen` already built).
+
+### Run metadata (JSON)
+
+Each successful run writes a **sidecar JSON** next to the STL (same basename):
+`output/luneburg.stl` → `output/luneburg.json`. It records CLI parameters, effective
+step, estimated hole count, PyMesh/NumPy versions, UTC time, and STL size — for
+reproducibility and later method comparison. Disable with `--no-metadata`.
+
+### Performance notes
+
+Runtime is dominated by **PyMesh boolean differences** repeated for each grid hole.
+Rough hole count is about `(2 * diameter / step)^2` (see `hole_count` in the JSON).
+Increasing `--resolution` grows the base icosphere and STL size quickly. Start with
+defaults; use a larger `--step` or smoke settings when iterating.
+
+### Dependencies
+
+- **Runtime:** Docker image `pymesh/pymesh:py3.7-slim` (or CN mirror via `BASE_IMAGE`).
+- **Pinned Python deps** (for reference / optional local tooling): `requirements.txt`
+  and `pyproject.toml` (NumPy only; PyMesh comes from the image).
+
+### CI
+
+GitHub Actions workflow `.github/workflows/ci.yml` builds with Docker Hub’s PyMesh
+image and runs the same smoke command, checking STL + JSON.
 
 # Example of use:
 

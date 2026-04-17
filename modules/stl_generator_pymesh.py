@@ -22,7 +22,7 @@ def add_square_holes(sphere:pymesh.Mesh,holes:list):
         y=hole_position[1]
         z=hole_position[2]
         
-        square_hole_mesh=generate_prism(L=z,A=hole_size,xy_positon=[x,y])
+        square_hole_mesh=generate_prism(L=z, A=hole_size, xy_position=[x, y])
 
 
         sphere=pymesh.boolean(sphere, square_hole_mesh, operation="difference")
@@ -81,13 +81,13 @@ def scale_model(mesh,scale_factor):
 
 
 
-def add_square_hole_to_mesh(mesh,A,L,xy_position):
-    square_hole_mesh=generate_prism(L=L,A=A,xy_positon=xy_position)
+def add_square_hole_to_mesh(mesh, A, L, xy_position):
+    square_hole_mesh = generate_prism(L=L, A=A, xy_position=xy_position)
     mesh=pymesh.boolean(mesh, square_hole_mesh, operation="difference")
     return mesh
 
 
-def generate_prism(L, A, num_samples=1, subdiv_order=0, xy_positon=[0,0]):
+def generate_prism(L, A, num_samples=1, subdiv_order=0, xy_position=None):
     """
     Generate a 3D prism with a square face using PyMesh.
 
@@ -96,14 +96,14 @@ def generate_prism(L, A, num_samples=1, subdiv_order=0, xy_positon=[0,0]):
         A (float): Area of the square face.
         num_samples (int): Number of segments on each edge of the box.
         subdiv_order (int): The subdivision order.
-        x (float): X-coordinate of the position.
-        y (float): Y-coordinate of the position.
+        xy_position (list): [x, y] center of the square in the XY plane.
 
     Returns:
         PyMesh.Mesh: The generated prism mesh.
     """
-
-    x,y=xy_positon
+    if xy_position is None:
+        xy_position = [0.0, 0.0]
+    x, y = xy_position
 
     # Calculate the side length of the square face
     side_length = A

@@ -1,0 +1,7 @@
+.git
+.github
+docker_diagnostics
+**/__pycache__
+*.pyc
+*.stl
+output/

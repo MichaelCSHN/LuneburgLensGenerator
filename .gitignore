@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+
+# 生成物（保留 output/ 目录本身见 output/.gitkeep）
+output/*.stl
+
+# 本地/IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo

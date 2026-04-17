@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  docker-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image (Docker Hub PyMesh)
+        run: |
+          docker build -t luneburg-gen \
+            --build-arg BASE_IMAGE=pymesh/pymesh:py3.7-slim .
+
+      - name: Smoke run + metadata
+        run: |
+          rm -f output/smoke.stl output/smoke.json
+          docker run --rm -v "$PWD":/app -w /app luneburg-gen python3 -u Luneburg.py \
+            --resolution 2 --step 5.0 --k 10 -o output/smoke.stl
+          test -s output/smoke.stl
+          test -s output/smoke.json
+          python3 -c "import json; json.load(open('output/smoke.json'))"
