@@ -3,5 +3,7 @@ ARG BASE_IMAGE=docker.1panel.live/pymesh/pymesh:py3.7-slim
 FROM ${BASE_IMAGE}
 WORKDIR /app
 COPY Luneburg.py ./
+COPY luneburg/ ./luneburg/
+COPY examples/ ./examples/
 COPY modules/ ./modules/
 CMD ["python3", "-u", "Luneburg.py"]

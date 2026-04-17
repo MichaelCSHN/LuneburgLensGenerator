@@ -1,6 +1,6 @@
 [project]
 name = "luneburg-lens-generator"
-version = "0.2.0"
+version = "0.3.0"
 description = "Luneburg lens STL generator (PyMesh)"
 readme = "README.md"
 requires-python = ">=3.7,<3.8"

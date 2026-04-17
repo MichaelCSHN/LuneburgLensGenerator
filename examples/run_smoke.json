@@ -1,0 +1,8 @@
+{
+  "resolution": 2,
+  "step": 5.0,
+  "k": 10,
+  "output": "output/from_config_smoke.stl",
+  "unit_cell_method": "legacy_sphere_holes",
+  "lattice_method": "single"
+}

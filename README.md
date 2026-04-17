@@ -43,9 +43,10 @@ Or run `./scripts/smoke_docker.sh` (expects image `luneburg-gen` already built).
 ### Run metadata (JSON)
 
 Each successful run writes a **sidecar JSON** next to the STL (same basename):
-`output/luneburg.stl` → `output/luneburg.json`. It records CLI parameters, effective
-step, estimated hole count, PyMesh/NumPy versions, UTC time, and STL size — for
-reproducibility and later method comparison. Disable with `--no-metadata`.
+`output/luneburg.stl` → `output/luneburg.json`. Schema **v2** records full
+`parameters`, effective step / diameter, `hole_count` (when applicable),
+`pipeline.parallel` (unit_cell + lattice stats), mesh metrics after scaling,
+PyMesh/NumPy versions, UTC time, and STL size. Disable with `--no-metadata`.
 
 ### Performance notes
 
@@ -64,6 +65,38 @@ defaults; use a larger `--step` or smoke settings when iterating.
 
 GitHub Actions workflow `.github/workflows/ci.yml` builds with Docker Hub’s PyMesh
 image and runs the same smoke command, checking STL + JSON.
+
+### Pipeline architecture (Phase 3: 串-并-串)
+
+- **串 1（预处理）** `luneburg/preprocess.py`：参数校验、方法名存在性检查。
+- **并（可插拔方法）**  
+  - **元胞** `luneburg/methods/unit_*.py`，注册表 `UNIT_CELL_REGISTRY`（当前：`legacy_sphere_holes`）。  
+  - **晶格/阵列** `luneburg/methods/lattice_*.py`，注册表 `LATTICE_REGISTRY`（`single` 直通；`grid_xy` XY 平移复制 + 顶点合并占位，便于后续换焊接/周期等实现）。
+- **串 2（后处理）** `luneburg/postprocess.py`：整体缩放、导出 STL、侧车 JSON、简单网格指标（顶点/面数）。  
+- **编排** `luneburg/pipeline.py`；**对比占位** `luneburg/compare.py`（批处理汇总壳）。
+
+列出已注册方法：
+
+    docker run --rm -v "$(pwd)":/app -w /app luneburg-gen python3 -u Luneburg.py --list-methods
+
+用 JSON 覆盖默认参数（便于批处理与多方法对比；文件中出现的键覆盖 CLI）：
+
+    docker run --rm -v "$(pwd)":/app -w /app luneburg-gen python3 -u Luneburg.py \
+      --from-config examples/run_smoke.json
+
+阵列示例（2×2，间距按元胞包围盒 × 系数）：
+
+    docker run --rm -v "$(pwd)":/app -w /app luneburg-gen python3 -u Luneburg.py \
+      --lattice grid_xy --grid-nx 2 --grid-ny 2 --grid-pitch-scale 1.05 \
+      --resolution 2 --step 5.0 --k 10 -o output/grid_smoke.stl
+
+批处理占位脚本（需已挂载仓库且已构建镜像）：
+
+    chmod +x scripts/batch_compare_stub.sh
+    ./scripts/batch_compare_stub.sh
+
+侧车 JSON 的 `schema` 为 `luneburg-lens-generator-run-v2`，含 `pipeline.parallel`
+（元胞/晶格统计）与 `comparison_stub` 占位字段。
 
 # Example of use:
 
